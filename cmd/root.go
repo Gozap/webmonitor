@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gozap/webmonitor/config"
+	"github.com/gozap/webmonitor/conf"
 	"github.com/gozap/webmonitor/utils"
 	"github.com/spf13/cobra"
 )
@@ -53,13 +53,13 @@ func initConfig() {
 		if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
 			_, err = os.Create(cfgFile)
 			utils.CheckAndExit(err)
-			config.Cfg = config.Example()
-			config.Cfg.SetConfigPath(cfgFile)
-			utils.CheckAndExit(config.Cfg.Write())
+			conf.Cfg = conf.Example()
+			conf.Cfg.SetConfigPath(cfgFile)
+			utils.CheckAndExit(conf.Cfg.Write())
 		} else if err != nil {
 			utils.CheckAndExit(err)
 		}
 	}
 
-	utils.CheckAndExit(config.Cfg.Load(cfgFile))
+	utils.CheckAndExit(conf.Cfg.Load(cfgFile))
 }

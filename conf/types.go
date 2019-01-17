@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package config
+package conf
 
 import (
 	"errors"
@@ -28,8 +28,8 @@ var Cfg Config
 
 type Config struct {
 	configPath string
-	Basic      Basic    `yaml:"basic"`
-	WebSites   WebSites `yaml:"websites"`
+	Basic      Basic   `yaml:"basic"`
+	Targets    Targets `yaml:"targets"`
 }
 
 // set config file path
@@ -62,30 +62,55 @@ func (cfg *Config) Load(filePath string) error {
 	return yaml.Unmarshal(buf, cfg)
 }
 
+func (cfg *Config) Default() {
+
+	var ts Targets
+
+	for _, tmpT := range cfg.Targets {
+		if tmpT.Cron == "" {
+			tmpT.Cron = cfg.Basic.Cron
+		}
+		if tmpT.TimeOut == 0 {
+			tmpT.TimeOut = cfg.Basic.TimeOut
+		}
+		if tmpT.Proxy == "" {
+			tmpT.Proxy = cfg.Basic.Proxy
+		}
+		if tmpT.Method == "" {
+			tmpT.Method = cfg.Basic.Method
+		}
+		ts = append(ts, tmpT)
+	}
+	cfg.Targets = ts
+}
+
 type Basic struct {
 	TimeOut time.Duration `yaml:"timeout"`
 	Method  string        `yaml:"method"`
 	Proxy   string        `yaml:"proxy"`
+	Cron    string        `yaml:"cron"`
 }
 
-type WebSite struct {
+type Target struct {
 	Name    string        `yaml:"name"`
 	Address string        `yaml:"address"`
 	TimeOut time.Duration `yaml:"timeout"`
 	Method  string        `yaml:"method"`
+	Payload string        `yaml:"payload"`
 	Proxy   string        `yaml:"proxy"`
+	Cron    string        `yaml:"cron"`
 }
 
-type WebSites []WebSite
+type Targets []Target
 
-func (ws WebSites) Len() int {
-	return len(ws)
+func (ts Targets) Len() int {
+	return len(ts)
 }
-func (ws WebSites) Less(i, j int) bool {
-	return ws[i].Name < ws[j].Name
+func (ts Targets) Less(i, j int) bool {
+	return ts[i].Name < ts[j].Name
 }
-func (ws WebSites) Swap(i, j int) {
-	ws[i], ws[j] = ws[j], ws[i]
+func (ts Targets) Swap(i, j int) {
+	ts[i], ts[j] = ts[j], ts[i]
 }
 
 func Example() Config {
@@ -95,7 +120,7 @@ func Example() Config {
 			TimeOut: 5 * time.Second,
 			Proxy:   "",
 		},
-		WebSites: []WebSite{
+		Targets: []Target{
 			{
 				Name:    "百度",
 				Address: "https://baidu.com",
