@@ -52,7 +52,11 @@ func (m HttpMonitor) Monitor(t conf.Target) error {
 		return err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	t.CheckResponse(resp)
+
+	err = t.CheckResponse(resp)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
