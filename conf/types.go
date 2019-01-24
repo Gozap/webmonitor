@@ -17,13 +17,15 @@
 package conf
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/sirupsen/logrus"
 
 	"gopkg.in/yaml.v2"
 )
@@ -118,45 +120,64 @@ type Target struct {
 	TimeOut       time.Duration `yaml:"timeout"`
 	Method        string        `yaml:"method"`
 	PassCode      []string      `yaml:"pass_code"`
-	ResponseCheck []string      `yaml:"response_check"`
+	ResponseCheck string        `yaml:"response_check"`
 	Payload       string        `yaml:"payload"`
 	Proxy         string        `yaml:"proxy"`
 	Cron          string        `yaml:"cron"`
 }
 
-func (t Target) CheckCode(code int) bool {
+func (t Target) checkCode(code int) error {
 	for _, cs := range t.PassCode {
 		if strings.Count(cs, "-") == 1 && len(strings.Split(cs, "-")) == 2 {
 			codes := strings.Split(cs, "-")
 			begin, err := strconv.Atoi(codes[0])
 			if err != nil {
-				logrus.Errorf("target [%s] passcode [%s] invalid!", t.Name, cs)
-				return false
+				return errors.New(fmt.Sprintf("target [%s] passcode [%s] invalid!", t.Name, cs))
 			}
 			end, err := strconv.Atoi(codes[1])
 			if err != nil {
-				logrus.Errorf("target [%s] passcode [%s] invalid!", t.Name, cs)
-				return false
+				return errors.New(fmt.Sprintf("target [%s] passcode [%s] invalid!", t.Name, cs))
 			}
 
 			if code >= begin && code <= end {
-				return true
+				return nil
 			}
 
 		} else {
 			passCode, err := strconv.Atoi(cs)
 			if err != nil {
-				logrus.Errorf("target [%s] passcode [%s] invalid!", t.Name, cs)
-				return false
+				return errors.New(fmt.Sprintf("target [%s] passcode [%s] invalid!", t.Name, cs))
 			}
 
 			if code == passCode {
-				return true
+				return nil
 			}
 		}
 	}
 
-	return false
+	return errors.New(fmt.Sprintf("target [%s] http status code check failed: %d", t.Name, code))
+}
+
+func (t Target) CheckResponse(resp *http.Response) error {
+
+	// check http code
+	if err := t.checkCode(resp.StatusCode); err != nil {
+		return err
+	}
+
+	var buf bytes.Buffer
+	_, err := io.Copy(&buf, resp.Body)
+	if err != nil {
+		return errors.New(fmt.Sprintf("target [%s] response read failed: %v", t.Name, err))
+	}
+
+	// check response value
+	// only support string check
+	if buf.String() == t.ResponseCheck {
+		return nil
+	}
+
+	return errors.New(fmt.Sprintf("target [%s] response check failed!", t.Name))
 }
 
 type Targets []Target

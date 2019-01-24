@@ -18,8 +18,6 @@ package monitor
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -53,9 +51,8 @@ func (m HttpMonitor) Monitor(t conf.Target) error {
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != http.StatusOK {
-		return errors.New(fmt.Sprintf("target %s [%s] request failed, status %d", t.Name, t.Address, resp.StatusCode))
-	}
+	defer func() { _ = resp.Body.Close() }()
+	t.CheckResponse(resp)
 
 	return nil
 }
