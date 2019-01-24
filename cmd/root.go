@@ -49,17 +49,16 @@ func init() {
 
 func initConfig() {
 	if cfgFile == "" {
-		cfgFile = "./webmonitor.yaml"
+		cfgFile = "webmonitor.yaml"
 		if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
 			_, err = os.Create(cfgFile)
 			utils.CheckAndExit(err)
 			conf.Cfg = conf.Example()
-			conf.Cfg.SetConfigPath(cfgFile)
-			utils.CheckAndExit(conf.Cfg.Write())
+			utils.CheckAndExit(conf.Cfg.WriteTo(cfgFile))
 		} else if err != nil {
 			utils.CheckAndExit(err)
 		}
 	}
 
-	utils.CheckAndExit(conf.Cfg.Load(cfgFile))
+	utils.CheckAndExit(conf.Cfg.LoadFrom(cfgFile))
 }
