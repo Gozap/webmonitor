@@ -1,19 +1,3 @@
-/*
- * Copyright 2019 Gozap, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package conf
 
 import (
@@ -165,19 +149,22 @@ func (t Target) CheckResponse(resp *http.Response) error {
 		return err
 	}
 
-	var buf bytes.Buffer
-	_, err := io.Copy(&buf, resp.Body)
-	if err != nil {
-		return errors.New(fmt.Sprintf("target [%s] response read failed: %v", t.Name, err))
-	}
+	if t.ResponseCheck != "" {
+		var buf bytes.Buffer
+		_, err := io.Copy(&buf, resp.Body)
+		if err != nil {
+			return errors.New(fmt.Sprintf("target [%s] response read failed: %v", t.Name, err))
+		}
 
-	// check response value
-	// only support string check
-	if buf.String() == t.ResponseCheck {
-		return nil
-	}
+		// check response value
+		// only support string check
+		if buf.String() == t.ResponseCheck {
+			return nil
+		}
 
-	return errors.New(fmt.Sprintf("target [%s] response check failed!", t.Name))
+		return errors.New(fmt.Sprintf("target [%s] response check failed!", t.Name))
+	}
+	return nil
 }
 
 type Targets []Target
