@@ -1,11 +1,14 @@
 package monitor
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/gozap/webmonitor/alarm"
 
 	"github.com/gozap/webmonitor/conf"
 	"github.com/robfig/cron"
@@ -38,7 +41,13 @@ func Run() {
 			err := mon.Monitor(tmpT)
 			if err != nil {
 				logrus.Error(err)
-				// TODO: alarm
+				ala := alarm.Salicola{Salicola: conf.Cfg.Salicola}
+				err = ala.Alarm(fmt.Sprintf("%s [%s] request failed: %v", tmpT.Name, tmpT.Address, err), tmpT.AlarmLevel)
+				if err != nil {
+					logrus.Error(err)
+				} else {
+					logrus.Infof("[%s] send alarm success!", tmpT.Name)
+				}
 			}
 
 		})

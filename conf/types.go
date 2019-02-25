@@ -18,8 +18,9 @@ var Cfg Config
 
 type Config struct {
 	configPath string
-	Basic      Basic   `yaml:"basic"`
-	Targets    Targets `yaml:"targets"`
+	Basic      Basic    `yaml:"basic"`
+	Targets    Targets  `yaml:"targets"`
+	Salicola   Salicola `yaml:"salicola"`
 }
 
 // set config file path
@@ -86,16 +87,20 @@ func (cfg *Config) Default() {
 		if tmpT.Method == "" {
 			tmpT.Method = cfg.Basic.Method
 		}
+		if tmpT.AlarmLevel == "" {
+			tmpT.AlarmLevel = cfg.Basic.AlarmLevel
+		}
 		ts = append(ts, tmpT)
 	}
 	cfg.Targets = ts
 }
 
 type Basic struct {
-	TimeOut time.Duration `yaml:"timeout"`
-	Method  string        `yaml:"method"`
-	Proxy   string        `yaml:"proxy"`
-	Cron    string        `yaml:"cron"`
+	TimeOut    time.Duration `yaml:"timeout"`
+	Method     string        `yaml:"method"`
+	Proxy      string        `yaml:"proxy"`
+	Cron       string        `yaml:"cron"`
+	AlarmLevel string        `yaml:"alarm_level"`
 }
 
 type Target struct {
@@ -108,6 +113,12 @@ type Target struct {
 	Payload       string        `yaml:"payload"`
 	Proxy         string        `yaml:"proxy"`
 	Cron          string        `yaml:"cron"`
+	AlarmLevel    string        `yaml:"alarm_level"`
+}
+
+type Salicola struct {
+	Address string `yaml:"address"`
+	Token   string `yaml:"token"`
 }
 
 func (t Target) checkCode(code int) error {
@@ -197,6 +208,10 @@ func Example() Config {
 				PassCode: []string{"200-300", "404"},
 				Address:  "https://mritd.me",
 			},
+		},
+		Salicola: Salicola{
+			Address: "https://salicola.example.com",
+			Token:   "nFcTxnHkwQaBRHxQ9QMTHfMPZacVMbLD",
 		},
 	}
 }
