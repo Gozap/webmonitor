@@ -42,7 +42,7 @@ func Run() {
 			if err != nil {
 				logrus.Error(err)
 				ala := alarm.Salicola{Salicola: conf.Cfg.Salicola}
-				err = ala.Alarm(fmt.Sprintf("%s [%s] request failed: %v", tmpT.Name, tmpT.Address, err), tmpT.AlarmLevel)
+				err = ala.Alarm(fmt.Sprintf("%s request failed: %v", tmpT.Name, err), tmpT.AlarmLevel)
 				if err != nil {
 					logrus.Error(err)
 				} else {
