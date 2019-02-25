@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/gozap/webmonitor/monitor"
+
 	"github.com/gozap/webmonitor/conf"
 	"github.com/gozap/webmonitor/utils"
 	"github.com/spf13/cobra"
@@ -11,16 +13,18 @@ import (
 
 var cfgFile string
 
-var rootCmd = &cobra.Command{
+var RootCmd = &cobra.Command{
 	Use:   "webmonitor",
 	Short: "A simple website monitor tool",
 	Long: `
 A simple website monitor tool.`,
-	Run: func(cmd *cobra.Command, args []string) {},
+	Run: func(cmd *cobra.Command, args []string) {
+		monitor.Run()
+	},
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -28,7 +32,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./webmonitor.yaml)")
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./webmonitor.yaml)")
 }
 
 func initConfig() {

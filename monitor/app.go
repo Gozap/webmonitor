@@ -3,6 +3,9 @@ package monitor
 import (
 	"net/http"
 	"net/url"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/gozap/webmonitor/conf"
 	"github.com/robfig/cron"
@@ -16,7 +19,7 @@ func Run() {
 	for _, t := range conf.Cfg.Targets {
 		tmpT := t
 		logrus.Infof("monitoring target %s: %s", t.Name, t.Address)
-		_ = c.AddFunc(tmpT.Cron, func() {
+		err := c.AddFunc(tmpT.Cron, func() {
 			client := &http.Client{
 				Timeout: tmpT.TimeOut,
 			}
@@ -31,6 +34,7 @@ func Run() {
 			mon := HttpMonitor{
 				client: client,
 			}
+			logrus.Infof("monitoring request: %s", tmpT.Address)
 			err := mon.Monitor(tmpT)
 			if err != nil {
 				logrus.Error(err)
@@ -38,5 +42,14 @@ func Run() {
 			}
 
 		})
+		if err != nil {
+			logrus.Fatal(err)
+		}
 	}
+
+	c.Start()
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	<-sigCh
 }

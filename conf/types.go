@@ -184,7 +184,7 @@ func Example() Config {
 		Basic: Basic{
 			Method:  "get",
 			TimeOut: 5 * time.Second,
-			Proxy:   "",
+			Cron:    "@every 10s",
 		},
 		Targets: []Target{
 			{
