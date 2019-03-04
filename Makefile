@@ -10,7 +10,7 @@ all:
 					-X 'main.CommitID=${COMMIT_SHA1}' \
 					-w -s"
 
-docker: all
+docker:
 	docker build -t gozap/webmonitor:${BUILD_VERSION} .
 
 clean:
